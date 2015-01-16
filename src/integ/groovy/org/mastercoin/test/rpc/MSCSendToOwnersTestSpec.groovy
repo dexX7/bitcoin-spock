@@ -50,10 +50,9 @@ class MSCSendToOwnersTestSpec extends BaseRegTestSpec {
 
 
         when: "the owners are funded"
-        ownerIds.each {
-            owners << newAddress
-            send_MP(actorAddress, owners[it], currencySP, inputOwnerSP[it])
-        }
+        ownerIds.each { owners << newAddress }
+        owners = owners.sort { it.toString() }
+        ownerIds.each { send_MP(actorAddress, owners[it], currencySP, inputOwnerSP[it]) }
         generateBlock()
 
         then: "the actor has a balance of #inputMSC and #inputSP"
@@ -61,7 +60,9 @@ class MSCSendToOwnersTestSpec extends BaseRegTestSpec {
         getbalance_MP(actorAddress, currencySP).balance == inputSP
 
         and: "all owners have their starting balances"
-        ownerIds.every { getbalance_MP(owners[it], currencySP).balance == inputOwnerSP[it] }
+        for (it in ownerIds) {
+            getbalance_MP(owners[it], currencySP).balance == inputOwnerSP[it]
+        }
 
 
         when: "#stoAmountSP is sent to owners of #currencySP"
@@ -73,13 +74,24 @@ class MSCSendToOwnersTestSpec extends BaseRegTestSpec {
         getbalance_MP(actorAddress, currencySP).balance == expectedSP
 
         and: "every owner has the expected balances"
-        ownerIds.every { getbalance_MP(owners[it], currencySP).balance == expectedOwnerSP[it] }
+        for (it in ownerIds) {
+            getbalance_MP(owners[it], currencySP).balance == expectedOwnerSP[it]
+        }
 
 
         where:
-        inputSP              | stoAmountSP | inputMSC  | inputOwnerSP                         || expectedSP           | expectedMSC | expectedOwnerSP
-        92233720368.54775806 |  0.00000001 | 0.1       | [0.00000001]                         || 92233720368.54775805 | 0.09999999  | [0.00000002]
-                100.0        |  0.5        | 0.1       | [2.0, 3.0]                           ||          99.5        | 0.09999998  | [2.2, 3.3]
-                 99.5        | 60.0        | 0.0000001 | [0.00000002, 0.00000001, 0.00000003] ||          39.5        | 0.00000007  | [20.00000002, 10.00000001, 30.00000003]
+        inputSP              | stoAmountSP          | inputMSC  | inputOwnerSP                         || expectedSP           | expectedMSC | expectedOwnerSP
+        // Test plan lines: 16-20
+        92233720368.54775806 |           0.00000001 | 0.1       | [0.00000001]                         || 92233720368.54775805 | 0.09999999  | [0.00000002]
+        90000000000.0        | 10000000000.0        | 0.1       | [1.0, 1.0]                           || 80000000000.0        | 0.09999998  | [5000000001.0, 5000000001.0]
+        80000000000.0        |         333.3        | 0.1       | [1.0, 1.0, 1.0]                      || 79999999666.7        | 0.09999997  | [112.1, 112.1, 112.1]
+                100.0        |           0.5        | 0.1       | [2.0, 3.0]                           ||          99.5        | 0.09999998  | [2.2, 3.3]
+                 99.5        |          60.0        | 0.0000001 | [0.00000002, 0.00000001, 0.00000003] ||          39.5        | 0.00000007  | [20.00000002, 10.00000001, 30.00000003]
+        // Test plan lines: 34-37
+        90000000000.0        |           0.22222221 | 0.1       | [1.0, 1.0]                           || 89999999999.77777779 | 0.09999998  | [1.11111111, 1.11111110]
+        89999999999.77777779 |           1.0        | 0.1       | [1.0, 1.0, 1.0]                      || 89999999998.77777779 | 0.09999997  | [1.33333334, 1.33333334, 1.33333332]
+                100.0        |           0.50000001 | 0.1       | [2.0, 3.0]                           || 99.49999999          | 0.09999998  | [2.2, 3.30000001]
+                 99.49999999 |          59.99999997 | 0.0000001 | [0.00000002, 0.00000001, 0.00000003] || 39.50000002          | 0.00000007  | [20.00000001, 9.99999994, 30.00000002]
+
     }
 }
