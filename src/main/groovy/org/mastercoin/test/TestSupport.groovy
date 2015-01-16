@@ -1,19 +1,18 @@
 package org.mastercoin.test
-
 import com.google.bitcoin.core.Address
 import com.google.bitcoin.core.Sha256Hash
 import com.google.bitcoin.core.Transaction
-import com.google.bitcoin.params.RegTestParams
 import com.msgilligan.bitcoin.BTC
-import org.mastercoin.CurrencyID
 import org.mastercoin.Ecosystem
 import org.mastercoin.MPNetworkParameters
 import org.mastercoin.MPRegTestParams
 import org.mastercoin.PropertyType
 import org.mastercoin.rpc.MastercoinClientDelegate
-import static org.mastercoin.CurrencyID.*
 
 import java.security.SecureRandom
+
+import static org.mastercoin.CurrencyID.MSC
+import static org.mastercoin.CurrencyID.TMSC
 
 /**
  * Test support functions intended to be mixed-in to Spock test specs
@@ -29,28 +28,38 @@ trait TestSupport implements MastercoinClientDelegate {
 
     Address createFundedAddress(BigDecimal requestedBTC, BigDecimal requestedMSC) {
         final MPNetworkParameters params = MPRegTestParams.get()  // Hardcoded for RegTest for now
-        Address fundedAddress = getNewAddress()
-        def btcForMSC = requestedMSC / 100
+        Address stepAddress = getNewAddress()
+        def btcForMSC = (requestedMSC / 100).setScale(8, BigDecimal.ROUND_UP)
         def startBTC = requestedBTC + btcForMSC + stdTxFee
+        startBTC += 5 * stdTxFee  // To send BTC, MSC and TMSC to the real receiver
 
         // Generate blocks until we have the requested amount of BTC
         while (getBalance() < startBTC) {
             generateBlock()
         }
-        Sha256Hash txid = sendToAddress(fundedAddress, startBTC)
+        Sha256Hash txid = sendToAddress(stepAddress, startBTC)
         generateBlock()
         def tx = getTransaction(txid)
         assert tx.confirmations == 1
 
         // Make sure we got the correct amount of BTC
-        BigDecimal btcBalance = getBitcoinBalance(fundedAddress)
+        BigDecimal btcBalance = getBitcoinBalance(stepAddress)
         assert btcBalance == startBTC
 
         // Send BTC to get MSC (and TMSC)
-        txid = sendBitcoin(fundedAddress, params.moneyManAddress, btcForMSC)
-
+        txid = sendBitcoin(stepAddress, params.moneyManAddress, btcForMSC)
         generateBlock()
+        tx = getTransaction(txid)
+        assert tx.confirmations == 1
 
+        // Send to the actual destination
+        Address fundedAddress = getNewAddress()
+        send_MP(stepAddress, fundedAddress, MSC, requestedMSC)
+        send_MP(stepAddress, fundedAddress, TMSC, requestedMSC)
+        generateBlock()
+        def remainingBTC = requestedBTC - getBitcoinBalance(fundedAddress)
+        txid = sendBitcoin(stepAddress, fundedAddress, remainingBTC)
+        generateBlock()
         tx = getTransaction(txid)
         assert tx.confirmations == 1
 
@@ -65,7 +74,6 @@ trait TestSupport implements MastercoinClientDelegate {
 
 
         return fundedAddress
-
     }
 
     Address createFaucetAddress(String account, BigDecimal requestedBTC) {
@@ -265,7 +273,7 @@ trait TestSupport implements MastercoinClientDelegate {
      * @param amount     The number of units to create
      * @return The transaction hash
      */
-    Sha256Hash createProperty(Address address, Ecosystem ecosystem, PropertyType type, Long amount) {
+    Sha256Hash createProperty(Address address, Ecosystem ecosystem, PropertyType type, Number amount) {
         return createProperty(address, ecosystem, type, amount, "SP");
     }
 
@@ -279,8 +287,8 @@ trait TestSupport implements MastercoinClientDelegate {
      * @param label      The label or title of the property
      * @return The transaction hash
      */
-    Sha256Hash createProperty(Address address, Ecosystem ecosystem, PropertyType type, Long amount, String label) {
-        def rawTxHex = createPropertyHex(ecosystem, type, 0L, "", "", label, "", "", amount);
+    Sha256Hash createProperty(Address address, Ecosystem ecosystem, PropertyType type, Number amount, String label) {
+        def rawTxHex = createPropertyHex(ecosystem, type, 0, "", "", label, "", "", amount);
         def txid = sendrawtx_MP(address, rawTxHex)
         return txid
     }
@@ -288,19 +296,19 @@ trait TestSupport implements MastercoinClientDelegate {
     /**
      * Creates a hex-encoded raw transaction of type 50: "create property with fixed supply".
      */
-    String createPropertyHex(Ecosystem ecosystem, PropertyType propertyType, Long previousPropertyId,
+    String createPropertyHex(Ecosystem ecosystem, PropertyType propertyType, Number previousPropertyId,
                              String category, String subCategory, String label, String website, String info,
-                             Long amount) {
+                             Number amount) {
         def rawTxHex = String.format("00000032%02x%04x%08x%s00%s00%s00%s00%s00%016x",
                                      ecosystem.byteValue(),
                                      propertyType.intValue(),
-                                     previousPropertyId,
+                                     previousPropertyId.intValue(),
                                      toHexString(category),
                                      toHexString(subCategory),
                                      toHexString(label),
                                      toHexString(website),
                                      toHexString(info),
-                                     amount)
+                                     amount.longValue())
         return rawTxHex
     }
 
