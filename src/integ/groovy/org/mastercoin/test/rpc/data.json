@@ -1,0 +1,14 @@
+[{
+  "rowNum": 16,
+  "inputBTC": 0.1,
+  "currencyMSC": 2,
+  "ecosystem": 2,
+  "propertyDivisibility": 2,
+  "inputSP": 92233720368.54775806,
+  "stoAmountSP": 0.00000001,
+  "inputMSC": 0.1,
+  "inputOwnerSP": [0.00000001],
+  "expectedSP": 92233720368.54775805,
+  "expectedMSC": 0.09999999,
+  "expectedOwnerSP": [0.00000002]
+}]
