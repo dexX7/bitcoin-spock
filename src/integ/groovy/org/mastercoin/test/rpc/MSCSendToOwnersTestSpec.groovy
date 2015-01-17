@@ -1,6 +1,7 @@
 package org.mastercoin.test.rpc
 
 import com.google.bitcoin.core.Address
+import com.msgilligan.bitcoin.BTC
 import org.mastercoin.BaseRegTestSpec
 import org.mastercoin.CurrencyID
 import org.mastercoin.Ecosystem
@@ -13,7 +14,6 @@ import static org.mastercoin.CurrencyID.TMSC
  *
  */
 class MSCSendToOwnersTestSpec extends BaseRegTestSpec {
-    final static BigDecimal stoFeePerAddress = 0.00000001
     final static BigInteger COIN = 100000000
 
     @Unroll
@@ -32,7 +32,7 @@ class MSCSendToOwnersTestSpec extends BaseRegTestSpec {
         def ownerIds = 0..<inputOwnerSP.size()
         def setupSP = inputOwnerSP.sum() + inputSP
         if (propertyDivisibility == PropertyType.DIVISIBLE) {
-            setupSP *= COIN
+            setupSP = BTC.btcToSatoshis(setupSP)
         }
 
         // create actor
