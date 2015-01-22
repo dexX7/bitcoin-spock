@@ -84,7 +84,7 @@ class MSCSendToOwnersTestPlanSpec extends BaseRegTestSpec {
         }
 
         when: "#amountSTO is sent to owners of #currencySPT"
-        def txid = sendToOwnersMP(actorAddress, currencySPT, amountSTO)
+        def txid = executeSendToOwners(actorAddress, currencySPT, propertyType, amountSTO)
         generateBlock()
 
         then: "the transaction validity is #expectedValidity"
@@ -171,6 +171,14 @@ class MSCSendToOwnersTestPlanSpec extends BaseRegTestSpec {
         def transaction = getTransactionMP(txid)
         assert transaction.valid == true
         assert transaction.confirmations == 1
+    }
+
+    /**
+     * Base method
+     */
+    def executeSendToOwners(Address actorAddress, CurrencyID currencyId, PropertyType propertyType, def amount) {
+        def txid = sendToOwnersMP(actorAddress, currencyId, amount)
+        return txid
     }
 
 }
