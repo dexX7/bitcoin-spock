@@ -31,21 +31,13 @@ class MSCSendToOwnersTestPlanSpec extends BaseRegTestSpec {
 
     @Unroll
     def "#description"() {
-        setup:
         assert numOwners == amountAvailableOwners.size()
         assert numOwners == amountReservedOwners.size()
         assert numOwners == expectedAmountAvailableOwners.size()
         assert numOwners == expectedAmountReservedOwners.size()
 
-        if (expectedValidity != true) {
-            throw new org.junit.internal.AssumptionViolatedException("skipped")
-        }
-        if (amountReserved > 0) {
-            throw new org.junit.internal.AssumptionViolatedException("skipped")
-        }
-        if (amountReservedOwners.sum() > 0) {
-            throw new org.junit.internal.AssumptionViolatedException("skipped")
-        }
+        maybeSkipInvalidationTests(expectedValidity)
+        maybeSkipReservedAmountsTests(amountReserved, amountReservedOwners)
 
         // Fund actor
         def startMSC = mscAvailable + mscReserved
@@ -181,4 +173,24 @@ class MSCSendToOwnersTestPlanSpec extends BaseRegTestSpec {
         return txid
     }
 
+    /**
+     * Base method
+     */
+    def maybeSkipInvalidationTests(Boolean expectedValidity) {
+        if (expectedValidity != true) {
+            throw new org.junit.internal.AssumptionViolatedException("skipped")
+        }
+    }
+
+    /**
+     * Base method
+     */
+    def maybeSkipReservedAmountsTests(def amountReserved, def amountReservedOwners) {
+        if (amountReserved > 0) {
+            throw new org.junit.internal.AssumptionViolatedException("skipped")
+        }
+        if (amountReservedOwners.sum() > 0) {
+            throw new org.junit.internal.AssumptionViolatedException("skipped")
+        }
+    }
 }
