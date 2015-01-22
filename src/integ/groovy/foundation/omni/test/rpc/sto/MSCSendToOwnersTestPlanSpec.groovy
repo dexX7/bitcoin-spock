@@ -19,11 +19,14 @@ class MSCSendToOwnersTestPlanSpec extends BaseRegTestSpec {
     def testdata
 
     def setupSpec() {
-        def path = "src/integ/groovy/foundation/omni/test/rpc/sto/sto-testplan.tsv"
-        def file = new File(path)
+        def file = new File(getTestPlanPath())
         def tsv = file.text
         def data = new CsvParser().parse(tsv, separator: '\t')
         testdata = data
+    }
+
+    def getTestPlanPath() {
+        return "src/integ/groovy/foundation/omni/test/rpc/sto/sto-testplan.tsv"
     }
 
     @Unroll
