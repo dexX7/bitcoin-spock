@@ -4,6 +4,7 @@ import foundation.omni.BaseRegTestSpec
 import foundation.omni.CurrencyID
 import foundation.omni.Ecosystem
 import foundation.omni.PropertyType
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static foundation.omni.CurrencyID.MSC
@@ -11,6 +12,7 @@ import static foundation.omni.CurrencyID.MSC
 /**
  * Creates several "send to owners" transactions.
  */
+@Ignore
 class SendToManyOwnersSpec extends BaseRegTestSpec {
 
     // Print intermediate results
