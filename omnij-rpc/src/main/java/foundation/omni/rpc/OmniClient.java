@@ -248,9 +248,9 @@ public class OmniClient extends BitcoinClient {
     public Sha256Hash trade_MP(Address fromAddress, BigDecimal amountForSale, CurrencyID propertyForSale,
                                BigDecimal amountDesired, CurrencyID propertyDesired, Byte action)
             throws JsonRPCException, IOException {
-        List<Object> params = createParamList(fromAddress.toString(), amountForSale.toPlainString(),
-                                              propertyForSale.longValue(), amountDesired.toPlainString(),
-                                              propertyDesired.longValue(), action);
+        List<Object> params = createParamList(fromAddress.toString(), propertyForSale.longValue(),
+                                              amountForSale.toPlainString(), propertyDesired.longValue(),
+                                              amountDesired.toPlainString(), action);
         String txid = send("trade_MP", params);
         Sha256Hash hash = new Sha256Hash(txid);
         return hash;
