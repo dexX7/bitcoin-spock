@@ -143,7 +143,7 @@ class DexSpec extends BaseRegTestSpec {
          startOtherMSC, additionalMSC] << [[0.1, 2.5, MSC, 90.0, 45.0, 10.0, 10.0]]
     }
 
-    def "There can be only one active offer that accepts BTC"() {
+    def "There can be only one active offer for the same property"() {
         given:
         def fundedAddress = createFundedAddress(startBTC, startMSC, false)
 
@@ -152,7 +152,7 @@ class DexSpec extends BaseRegTestSpec {
                 fundedAddress, currencyOffered, firstOfferMSC, firstOfferBTC, stdBlockSpan, stdCommitFee, actionNew)
         generateBlock()
 
-        and: "and another offer accepting BTC is made"
+        and: "and another offer for the same property is made"
         def secondOfferTxid = createDexSellOffer(
                 fundedAddress, currencyOffered, secondOfferMSC, secondOfferBTC, stdBlockSpan, stdCommitFee, actionNew)
         generateBlock()
@@ -164,6 +164,30 @@ class DexSpec extends BaseRegTestSpec {
         where:
         [startBTC, startMSC, currencyOffered, firstOfferMSC, firstOfferBTC,
          secondOfferMSC, secondOfferBTC] << [[0.1, 2.5, MSC, 1.0, 0.2, 1.5, 0.3]]
+    }
+
+    def "There can be only one active offer for that accepts BTC"() {
+        given:
+        def fundedAddress = createFundedAddress(startBTC, startMSC, false)
+
+        when: "there is already an active offer accepting BTC"
+        def firstOfferTxid = createDexSellOffer(
+                fundedAddress, firstOfferCurrency, firstOfferMSC, firstOfferBTC, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        and: "and another offer accepting BTC is made"
+        def secondOfferTxid = createDexSellOffer(
+                fundedAddress, secondOfferCurrency, secondOfferMSC, secondOfferBTC, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then: "the other offer is rejected"
+        getTransactionMP(firstOfferTxid).valid == true
+        getTransactionMP(secondOfferTxid).valid == false
+
+        where:
+        startBTC | startMSC | firstOfferCurrency | firstOfferMSC | firstOfferBTC | secondOfferCurrency | secondOfferMSC | secondOfferBTC
+        0.01     | 2.5      | MSC                | 1.0           | 0.2           | TMSC                | 1.5            | 0.3
+        0.01     | 2.5      | TMSC               | 1.5           | 0.3           | MSC                 | 1.0            | 0.2
     }
 
     def "An offer can be updated with action = 2, and cancelled with action = 3"() {
