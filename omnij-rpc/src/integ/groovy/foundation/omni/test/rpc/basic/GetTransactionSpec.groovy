@@ -110,16 +110,15 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "DEx Sell Offer"
-        (tx.amountoffered as BigDecimal) == tradeAmountMSC
-        tx.propertyidoffered == CurrencyID.MSC_VALUE
-        (tx.btcamountdesired as BigDecimal) == tradeAmountBTC
-        tx.action == 1 // new
+        tx.propertyid == CurrencyID.MSC_VALUE
+        tx.action == "new"
+        (tx.bitcoindesired as BigDecimal) == tradeAmountBTC
 
         when: "confirmed"
         generateBlock()
         tx = getTransactionMP(txid)
 
-        then: // TODO: mismatch!
+        then:
         tx.txid == txid.toString()
         tx.sendingaddress == actorAddress.toString()
         !tx.containsKey('referenceaddress')
@@ -168,16 +167,16 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "DEx Sell Offer"
-        (tx.amountoffered as BigDecimal) == tradeAmountUpdatedMSC
-        tx.propertyidoffered == CurrencyID.MSC_VALUE
-        (tx.btcamountdesired as BigDecimal) == tradeAmountUpdatedBTC
-        tx.action == 2 // update
+        tx.propertyid == CurrencyID.MSC_VALUE
+        (tx.amount as BigDecimal) == tradeAmountUpdatedMSC
+        tx.action == "update"
+        (tx.bitcoindesired as BigDecimal) == tradeAmountUpdatedBTC
 
         when: "confirmed"
         generateBlock()
         tx = getTransactionMP(txid)
 
-        then: // TODO: mismatch!
+        then:
         tx.txid == txid.toString()
         tx.sendingaddress == actorAddress.toString()
         !tx.containsKey('referenceaddress')
@@ -226,10 +225,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "DEx Sell Offer"
-        (tx.amountoffered as BigDecimal) == zeroAmount
-        tx.propertyidoffered == CurrencyID.MSC_VALUE
-        (tx.btcamountdesired as BigDecimal) == zeroAmount
-        tx.action == 3 // cancel
+        tx.propertyid == CurrencyID.MSC_VALUE
+        (tx.amount as BigDecimal) == zeroAmount
+        tx.action == "cancel"
+        (tx.bitcoindesired as BigDecimal) == zeroAmount
 
         when: "confirmed"
         generateBlock()
@@ -250,7 +249,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.propertyid == CurrencyID.MSC_VALUE
         tx.divisible
         (tx.amount as BigDecimal) == zeroAmount
-        (tx.feerequired as BigDecimal) == zeroAmount // TODO: actually it shows the update amount
+        (tx.feerequired as BigDecimal) == zeroAmount
         tx.timelimit == 0
         tx.action == "cancel"
         (tx.bitcoindesired as BigDecimal) == zeroAmount
@@ -311,12 +310,12 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "MetaDEx trade"
-        (tx.amountoffered as BigDecimal) == amountForSale
-        tx.propertyidoffered == CurrencyID.TMSC_VALUE
-        tx.propertyidofferedisdivisible
-        (tx.amountdesired as BigDecimal) == amountDesired
+        tx.propertyidforsale == CurrencyID.TMSC_VALUE
+        tx.propertyidforsaleisdivisible
+        (tx.amountforsale as BigDecimal) == amountForSale
         tx.propertyiddesired == nonManagedID.longValue()
         tx.propertyiddesiredisdivisible
+        (tx.amountdesired as BigDecimal) == amountDesired
         (tx.unitprice as BigDecimal) == (amountForSale / amountDesired) // always nominated in MSC
 
         when: "confirmed"
@@ -365,12 +364,12 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "MetaDEx cancel-price"
-        (tx.amountoffered as BigDecimal) == amountForSale
-        tx.propertyidoffered == CurrencyID.TMSC_VALUE
-        tx.propertyidofferedisdivisible
-        (tx.amountdesired as BigDecimal) == amountDesired
+        tx.propertyidforsale == CurrencyID.TMSC_VALUE
+        tx.propertyidforsaleisdivisible
+        (tx.amountforsale as BigDecimal) == amountForSale
         tx.propertyiddesired == nonManagedID.longValue()
         tx.propertyiddesiredisdivisible
+        (tx.amountdesired as BigDecimal) == amountDesired
         (tx.unitprice as BigDecimal) == (amountForSale / amountDesired) // always nominated in MSC
 
         when: "confirmed"
@@ -416,7 +415,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
         !tx.containsKey('referenceaddress')
         tx.confirmations == 0
         tx.type == "MetaDEx cancel-pair"
-        tx.propertyidoffered == nonManagedID.longValue()
+        tx.propertyidforsale == nonManagedID.longValue()
         tx.propertyiddesired == CurrencyID.TMSC_VALUE
 
         when: "confirmed"
