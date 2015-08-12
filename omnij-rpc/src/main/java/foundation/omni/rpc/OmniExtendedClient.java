@@ -16,10 +16,9 @@ import java.net.URI;
 
 /**
  * OmniClient that adds "extended" methods for Omni transactions that lack
- * RPCs in Omni Core 0.9.0
- *
- * <p>Raw transactions are created and sent via sendrawtx_MP
- *
+ * RPCs in Omni Core 0.9.0, and to bypass validity checks on the RPC layer.
+ * <p/>
+ * Raw transactions are created and sent via {@code "omni_sendrawtx"}.
  */
 public class OmniExtendedClient extends OmniClient {
     RawTxBuilder builder = new RawTxBuilder();
@@ -41,7 +40,7 @@ public class OmniExtendedClient extends OmniClient {
      */
     public Sha256Hash sendToOwners(Address address, CurrencyID currencyId, Long amount) throws JsonRPCException, IOException {
         String rawTxHex = builder.createSendToOwnersHex(currencyId, amount);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -65,7 +64,7 @@ public class OmniExtendedClient extends OmniClient {
         Long satoshisFee = BTC.btcToSatoshis(commitmentFee).longValue();
         String rawTxHex = builder.createDexSellOfferHex(
                 currencyId, satoshisForSale, satoshisDesired, paymentWindow, satoshisFee, action);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -82,7 +81,7 @@ public class OmniExtendedClient extends OmniClient {
             throws JsonRPCException, IOException {
         Long satoshis = BTC.btcToSatoshis(amount).longValue();
         String rawTxHex = builder.createAcceptDexOfferHex(currencyId, satoshis);
-        Sha256Hash txid = sendrawtx_MP(fromAddress, rawTxHex, toAddress);
+        Sha256Hash txid = omniSendRawTx(fromAddress, rawTxHex, toAddress);
         return txid;
     }
 
@@ -107,7 +106,7 @@ public class OmniExtendedClient extends OmniClient {
         Long willetsDesired = BTC.btcToSatoshis(amountDesired).longValue();  // Assume divisible property
         String rawTxHex = builder.createMetaDexSellOfferHex(
                 currencyForSale, willetsForSale, currencyDesired, willetsDesired, action);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -130,7 +129,7 @@ public class OmniExtendedClient extends OmniClient {
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createCrowdsaleHex(ecosystem, propertyType, 0L, "", "", "CS", "", "", propertyDesired,
                                                      tokensPerUnit, deadline, earlyBirdBonus, issuerBonus);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -161,7 +160,7 @@ public class OmniExtendedClient extends OmniClient {
     public Sha256Hash createProperty(Address address, Ecosystem ecosystem, PropertyType type, Long amount, String label)
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createPropertyHex(ecosystem, type, 0L, "", "", label, "", "", amount);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -174,7 +173,7 @@ public class OmniExtendedClient extends OmniClient {
      */
     public Sha256Hash closeCrowdsale(Address address, CurrencyID currencyID) throws JsonRPCException, IOException {
         String rawTxHex = builder.createCloseCrowdsaleHex(currencyID);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -196,7 +195,7 @@ public class OmniExtendedClient extends OmniClient {
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createManagedPropertyHex(ecosystem, type, 0L, category, subCategory, label, website,
                                                            info);
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -211,7 +210,7 @@ public class OmniExtendedClient extends OmniClient {
     public Sha256Hash grantTokens(Address address, CurrencyID currencyID, Long amount)
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createGrantTokensHex(currencyID, amount, "");
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -226,7 +225,7 @@ public class OmniExtendedClient extends OmniClient {
     public Sha256Hash revokeTokens(Address address, CurrencyID currencyID, Long amount)
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createRevokeTokensHex(currencyID, amount, "");
-        Sha256Hash txid = sendrawtx_MP(address, rawTxHex);
+        Sha256Hash txid = omniSendRawTx(address, rawTxHex);
         return txid;
     }
 
@@ -241,7 +240,7 @@ public class OmniExtendedClient extends OmniClient {
     public Sha256Hash changeIssuer(Address fromAddress, CurrencyID currencyID, Address toAddress)
             throws JsonRPCException, IOException {
         String rawTxHex = builder.createChangePropertyManagerHex(currencyID);
-        Sha256Hash txid = sendrawtx_MP(fromAddress, rawTxHex, toAddress);
+        Sha256Hash txid = omniSendRawTx(fromAddress, rawTxHex, toAddress);
         return txid;
     }
 

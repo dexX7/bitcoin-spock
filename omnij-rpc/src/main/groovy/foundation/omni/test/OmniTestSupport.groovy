@@ -12,8 +12,6 @@ import foundation.omni.net.OmniNetworkParameters
 import foundation.omni.net.OmniRegTestParams
 import foundation.omni.rpc.OmniClientDelegate
 
-import java.security.SecureRandom
-
 /**
  * Test support functions intended to be mixed-in to Spock test specs
  */
@@ -57,8 +55,8 @@ trait OmniTestSupport implements BTCTestSupport, OmniClientDelegate, RawTxDelega
             def junkAddress = newAddress
 
             // TODO: can we always get away with not generating a block inbetween?
-            def extraTxidMSC = send_MP(toAddress, junkAddress, CurrencyID.MSC, excessiveMSC)
-            def extraTxidTMSC = send_MP(toAddress, junkAddress, CurrencyID.TMSC, excessiveMSC)
+            def extraTxidMSC = omniSend(toAddress, junkAddress, CurrencyID.MSC, excessiveMSC)
+            def extraTxidTMSC = omniSend(toAddress, junkAddress, CurrencyID.TMSC, excessiveMSC)
         }
 
         // TODO: when using an intermediate receiver, this txid doesn't reflect the whole picture
@@ -95,10 +93,18 @@ trait OmniTestSupport implements BTCTestSupport, OmniClientDelegate, RawTxDelega
         }
         def txidCreation = createProperty(address, ecosystem, type, amount.longValue())
         generateBlock()
-        def txCreation = getTransactionMP(txidCreation)
+        def txCreation = omniGetTransaction(txidCreation)
         assert txCreation.valid == true
         assert txCreation.confirmations == 1
         return new CurrencyID(txCreation.propertyid as long)
     }
 
+    CurrencyID fundManagedProperty(Address address, PropertyType type, Ecosystem ecosystem) {
+        def txidCreation = createManagedProperty(address, ecosystem, type, "", "", "MSP", "", "")
+        generateBlock()
+        def txCreation = omniGetTransaction(txidCreation)
+        assert txCreation.valid == true
+        assert txCreation.confirmations == 1
+        return new CurrencyID(txCreation.propertyid as long)
+    }
 }
