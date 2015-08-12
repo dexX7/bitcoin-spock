@@ -133,10 +133,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.propertyid == CurrencyID.MSC_VALUE
         tx.divisible
         (tx.amount as BigDecimal) == tradeAmountMSC
-        (tx.feerequired as BigDecimal) == minTxFees
-        tx.timelimit == paymentWindow
-        tx.action == "new"
         (tx.bitcoindesired as BigDecimal) == tradeAmountBTC
+        tx.timelimit == paymentWindow
+        (tx.feerequired as BigDecimal) == minTxFees
+        tx.action == "new"
+
     }
 
     def "Tx 20: DEx Sell Offer - Update"() {
@@ -191,10 +192,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.propertyid == CurrencyID.MSC_VALUE
         tx.divisible
         (tx.amount as BigDecimal) == tradeAmountUpdatedMSC
-        (tx.feerequired as BigDecimal) == minTxFeesUpdated
-        tx.timelimit == paymentWindowUpdated
-        tx.action == "update"
         (tx.bitcoindesired as BigDecimal) == tradeAmountUpdatedBTC
+        tx.timelimit == paymentWindowUpdated
+        (tx.feerequired as BigDecimal) == minTxFeesUpdated
+        tx.action == "update"
     }
 
     def "Tx 20: DEx Sell Offer - Cancel"() {
@@ -219,7 +220,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
                                paymentWindowIgnored, minTxFeesIgnored, actionCancel)
         def tx = getTransactionMP(txid)
 
-        then: // TODO: mismatch!
+        then:
         tx.txid == txid.toString()
         tx.sendingaddress == actorAddress.toString()
         !tx.containsKey('referenceaddress')
@@ -249,10 +250,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.propertyid == CurrencyID.MSC_VALUE
         tx.divisible
         (tx.amount as BigDecimal) == zeroAmount
-        (tx.feerequired as BigDecimal) == zeroAmount
-        tx.timelimit == 0
-        tx.action == "cancel"
         (tx.bitcoindesired as BigDecimal) == zeroAmount
+        tx.timelimit == 0
+        (tx.feerequired as BigDecimal) == zeroAmount
+        tx.action == "cancel"
     }
 
     def "Tx 22: DEx Accept Order"() {
@@ -509,8 +510,14 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.type_int == 50
         tx.type == "Create Property - Fixed"
         tx.propertyid > CurrencyID.TMSC_VALUE
-        tx.propertyname == name
         !tx.divisible
+        tx.ecosystem == "main"
+        tx.propertytype == "indivisible"
+        tx.category == category
+        tx.subcategory == subCategory
+        tx.propertyname == name
+        tx.url == url
+        tx.data == data
         (tx.amount as BigDecimal) == amount
     }
 
@@ -551,9 +558,17 @@ class GetTransactionSpec extends BaseRegTestSpec {
         tx.type_int == 51
         tx.type == "Create Property - Variable"
         tx.propertyid > CurrencyID.TMSC_VALUE
+        tx.ecosystem == "test"
+        tx.propertytype == "divisible"
+        tx.category == category
+        tx.subcategory == subCategory
         tx.propertyname == name
-        tx.divisible
-        (tx.amount as BigDecimal) == zeroAmount
+        tx.url == url
+        tx.data == data
+        (tx.tokensperunit as BigDecimal) == tokensPerUnit
+        tx.deadline == deadline
+        tx.earlybonus == earlyBirdBonus
+        tx.percenttoissuer == issuerBonus
     }
 
     def "Tx 53: Close Crowdsale"() {
