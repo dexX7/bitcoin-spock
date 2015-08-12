@@ -17,8 +17,8 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def otherAddress = newAddress
 
         when: "unconfirmed"
-        def txid = send_MP(actorAddress, otherAddress, CurrencyID.MSC, startMSC)
-        def tx = getTransactionMP(txid)
+        def txid = omniSend(actorAddress, otherAddress, CurrencyID.MSC, startMSC)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -32,7 +32,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -57,8 +57,8 @@ class GetTransactionSpec extends BaseRegTestSpec {
         createFundedAddress(startBTC, startMSC) // to have at least one owner
 
         when: "unconfirmed"
-        def txid = sendToOwnersMP(actorAddress, CurrencyID.MSC, sendAmount)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendSTO(actorAddress, CurrencyID.MSC, sendAmount)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -72,7 +72,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -100,9 +100,9 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def actorAddress = createFundedAddress(startBTC, startMSC)
 
         when: "unconfirmed"
-        def txid = sendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees,
-                               actionNew)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees,
+                                   actionNew)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -116,7 +116,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -156,11 +156,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def actorAddress = createFundedAddress(startBTC, startMSC)
 
         when: "unconfirmed"
-        sendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
+        omniSendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
         generateBlock()
-        def txid = sendDExSell(actorAddress, CurrencyID.MSC, tradeAmountUpdatedMSC, tradeAmountUpdatedBTC,
-                               paymentWindowUpdated, minTxFeesUpdated, actionUpdate)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendDExSell(actorAddress, CurrencyID.MSC, tradeAmountUpdatedMSC, tradeAmountUpdatedBTC,
+                                   paymentWindowUpdated, minTxFeesUpdated, actionUpdate)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -175,7 +175,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -214,11 +214,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def actorAddress = createFundedAddress(startBTC, startMSC)
 
         when: "unconfirmed"
-        sendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
+        omniSendDExSell(actorAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
         generateBlock()
-        def txid = sendDExSell(actorAddress, CurrencyID.MSC, tradeAmountIgnoredMSC, tradeAmountIgnoredBTC,
-                               paymentWindowIgnored, minTxFeesIgnored, actionCancel)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendDExSell(actorAddress, CurrencyID.MSC, tradeAmountIgnoredMSC, tradeAmountIgnoredBTC,
+                                   paymentWindowIgnored, minTxFeesIgnored, actionCancel)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -233,7 +233,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -272,11 +272,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         // TODO: test with low fee settings
 
         when: "confirmed"
-        sendDExSell(otherAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
+        omniSendDExSell(otherAddress, CurrencyID.MSC, tradeAmountMSC, tradeAmountBTC, paymentWindow, minTxFees, actionNew)
         generateBlock()
-        def txid = sendDExAccept(actorAddress, otherAddress, CurrencyID.MSC, acceptAmountMSC, true)
+        def txid = omniSendDExAccept(actorAddress, otherAddress, CurrencyID.MSC, acceptAmountMSC, true)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -302,8 +302,8 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def nonManagedID = fundNewProperty(actorAddress, amountDesired, PropertyType.DIVISIBLE, Ecosystem.TMSC)
 
         when: "unconfirmed"
-        def txid = sendMetaDExTrade(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID, amountDesired)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendTrade(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID, amountDesired)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -321,7 +321,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -353,11 +353,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def nonManagedID = fundNewProperty(actorAddress, amountDesired, PropertyType.DIVISIBLE, Ecosystem.TMSC)
 
         when: "unconfirmed"
-        sendMetaDExTrade(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID, amountDesired)
+        omniSendTrade(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID, amountDesired)
         generateBlock()
-        def txid = sendCancelMetaDExTradesByPrice(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID,
-                                                  amountDesired)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendCancelTradesByPrice(actorAddress, CurrencyID.TMSC, amountForSale, nonManagedID,
+                                               amountDesired)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -375,7 +375,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -405,10 +405,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def nonManagedID = fundNewProperty(actorAddress, amountForSale, PropertyType.DIVISIBLE, Ecosystem.TMSC)
 
         when: "unconfirmed"
-        sendMetaDExTrade(actorAddress, nonManagedID, amountForSale, CurrencyID.TMSC, amountDesired)
+        omniSendTrade(actorAddress, nonManagedID, amountForSale, CurrencyID.TMSC, amountDesired)
         generateBlock()
-        def txid = sendCancelMetaDExTradesByPair(actorAddress, nonManagedID, CurrencyID.TMSC)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendCancelTradesByPair(actorAddress, nonManagedID, CurrencyID.TMSC)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -421,7 +421,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -446,10 +446,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def nonManagedID = fundNewProperty(actorAddress, amountForSale, PropertyType.DIVISIBLE, Ecosystem.TMSC)
 
         when: "unconfirmed"
-        sendMetaDExTrade(actorAddress, nonManagedID, amountForSale, CurrencyID.TMSC, amountDesired)
+        omniSendTrade(actorAddress, nonManagedID, amountForSale, CurrencyID.TMSC, amountDesired)
         generateBlock()
-        def txid = sendCancelAllMetaDExTrades(actorAddress, Ecosystem.TMSC)
-        def tx = getTransactionMP(txid)
+        def txid = omniSendCancelAllTrades(actorAddress, Ecosystem.TMSC)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -461,7 +461,7 @@ class GetTransactionSpec extends BaseRegTestSpec {
 
         when: "confirmed"
         generateBlock()
-        tx = getTransactionMP(txid)
+        tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -492,10 +492,10 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def actorAddress = createFundedAddress(startBTC, startMSC)
 
         when: "confirmed"
-        def txid = sendIssuanceFixed(actorAddress, ecosystem, propertyType, previousId, category, subCategory, name,
-                                     url, data, amount)
+        def txid = omniSendIssuanceFixed(actorAddress, ecosystem, propertyType, previousId, category, subCategory, name,
+                                         url, data, amount)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -539,11 +539,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def actorAddress = createFundedAddress(startBTC, startMSC)
 
         when: "confirmed"
-        def txid = sendIssuanceCrowdsale(actorAddress, ecosystem, propertyType, previousId, category, subCategory, name,
-                                         url, data, propertyDesired, tokensPerUnit, deadline, earlyBirdBonus,
-                                         issuerBonus)
+        def txid = omniSendIssuanceCrowdsale(actorAddress, ecosystem, propertyType, previousId, category, subCategory, name,
+                                             url, data, propertyDesired, tokensPerUnit, deadline, earlyBirdBonus,
+                                             issuerBonus)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -586,9 +586,9 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def amount = 50.0
 
         when: "confirmed"
-        def txid = sendGrant(actorAddress, otherAddress, managedID, amount)
+        def txid = omniSendGrant(actorAddress, otherAddress, managedID, amount)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -614,11 +614,11 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def amountRevoke = 21L
 
         when: "confirmed"
-        sendGrant(actorAddress, actorAddress, managedID, amountGrant)
+        omniSendGrant(actorAddress, actorAddress, managedID, amountGrant)
         generateBlock()
-        def txid = sendRevoke(actorAddress, managedID, amountRevoke)
+        def txid = omniSendRevoke(actorAddress, managedID, amountRevoke)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()
@@ -643,9 +643,9 @@ class GetTransactionSpec extends BaseRegTestSpec {
         def managedID = fundManagedProperty(actorAddress, PropertyType.INDIVISIBLE, Ecosystem.MSC)
 
         when: "confirmed"
-        def txid = sendChangeIssuer(actorAddress, otherAddress, managedID)
+        def txid = omniSendChangeIssuer(actorAddress, otherAddress, managedID)
         generateBlock()
-        def tx = getTransactionMP(txid)
+        def tx = omniGetTransaction(txid)
 
         then:
         tx.txid == txid.toString()

@@ -11,9 +11,9 @@ import static foundation.omni.CurrencyID.*
 class OmniSpec extends BaseRegTestSpec {
 
     def "Implement getbalance_MP"() {
-        when: "we call getbalance_MP on a newly generated address"
+        when: "we call omniGetBalance on a newly generated address"
         def destAddr = getNewAddress()                   // Create new Bitcoin address
-        def entry = getbalance_MP(destAddr, MSC)
+        def entry = omniGetBalance(destAddr, MSC)
 
         then: "it should return a balance of zero"
         entry.balance == 0
@@ -21,7 +21,7 @@ class OmniSpec extends BaseRegTestSpec {
 
     def "Return Omni Core version field using getinfo_MP" () {
         when: "we request info"
-        def mpInfo = getinfo_MP()
+        def mpInfo = omniGetInfo()
 
         then: "we get back an Omni version, too"
         mpInfo != null
