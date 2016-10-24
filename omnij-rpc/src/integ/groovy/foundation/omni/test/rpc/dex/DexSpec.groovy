@@ -284,6 +284,267 @@ class DexSpec extends BaseRegTestSpec {
         [startBTC, startMSC, currencyOffered, offeredMSC, desiredBTC] << [[0.1.btc, 0.1.divisible, OMNI, 0.05.divisible, 0.07.btc]]
     }
 
+    def "Only the accepted amount is reserved from the offer"() {
+        given:
+        def actorA = createFundedAddress(0.1.btc, 100.0.divisible)
+        def actorB = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "A offers 0.1 Omni for 0.05 BTC"
+        def offerTxid = createDexSellOffer(actorA, OMNI, 100.0.divisible, 50.0.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+        omniGetTransaction(offerTxid).amount as BigDecimal == 100.0.divisible.numberValue()
+
+        when: "B accepts 2.0 Omni"
+        def acceptTxid = acceptDexOffer(actorB, OMNI, 2.0.divisible, actorA)
+
+        then:
+        omniGetTransaction(acceptTxid).amount as BigDecimal == 2.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "1.0 Omni are reserved for B"
+        omniGetTransaction(acceptTxid).valid
+        omniGetTransaction(acceptTxid).amount as BigDecimal == 2.0.divisible.numberValue()
+    }
+
+    def "No more than the available amount for sale can be reserved"() {
+        given:
+        def actorA = createFundedAddress(0.1.btc, 0.1.divisible)
+        def actorB = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "A offers 0.1 Omni for 0.05 BTC"
+        def offerTxid = createDexSellOffer(actorA, OMNI, 0.1.divisible, 0.05.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+        when: "B accepts 0.2 Omni"
+        def acceptTxid = acceptDexOffer(actorB, OMNI, 0.2.divisible, actorA)
+
+        then:
+        omniGetTransaction(acceptTxid).amount as BigDecimal == 0.2.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "only the available 0.1 Omni are reserved for B"
+        omniGetTransaction(acceptTxid).valid
+        omniGetTransaction(acceptTxid).amount as BigDecimal == 0.1.divisible.numberValue()
+    }
+
+    def "Seller offers 5, B1 wants 2, B2 wants 1, and all get what they want"() {
+        given:
+        def actorSeller = createFundedAddress(0.1.btc, 7.0.divisible)
+        def actorBuyer1 = createFundedAddress(0.1.btc, 0.divisible)
+        def actorBuyer2 = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "Seller offers 5.0 Omni"
+        def offerTxid = createDexSellOffer(actorSeller, OMNI, 5.0.divisible, 2.5.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+
+        when: "Buyer 1 wants to accept 2.0 Omni"
+        def acceptTxid1 = acceptDexOffer(actorBuyer1, OMNI, 2.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "2.0 Omni are reserved for Buyer 1"
+        omniGetTransaction(acceptTxid1).valid
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+
+        when: "Buyer 2 wants to accept 1.0 Omni"
+        def acceptTxid2 = acceptDexOffer(actorBuyer2, OMNI, 1.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 1.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "1.0 Omni are reserved for Buyer 2"
+        omniGetTransaction(acceptTxid2).valid
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 1.0.divisible.numberValue()
+    }
+
+    def "Seller offers 5, B1 wants 2, B2 wants 3, and all get what they want"() {
+        given:
+        def actorSeller = createFundedAddress(0.1.btc, 7.0.divisible)
+        def actorBuyer1 = createFundedAddress(0.1.btc, 0.divisible)
+        def actorBuyer2 = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "Seller offers 5.0 Omni"
+        def offerTxid = createDexSellOffer(actorSeller, OMNI, 5.0.divisible, 2.5.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+
+        when: "Buyer 1 wants to accept 2.0 Omni"
+        def acceptTxid1 = acceptDexOffer(actorBuyer1, OMNI, 2.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "2.0 Omni are reserved for Buyer 1"
+        omniGetTransaction(acceptTxid1).valid
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+
+        when: "Buyer 2 wants to accept 3.0 Omni"
+        def acceptTxid2 = acceptDexOffer(actorBuyer2, OMNI, 3.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 3.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "1.0 Omni are reserved for Buyer 2"
+        omniGetTransaction(acceptTxid2).valid
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 3.0.divisible.numberValue()
+    }
+
+    def "Seller offers 5, B1 wants 2, B2 wants 7, but B2 only gets 3"() {
+        given:
+        def actorSeller = createFundedAddress(0.1.btc, 7.0.divisible)
+        def actorBuyer1 = createFundedAddress(0.1.btc, 0.divisible)
+        def actorBuyer2 = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "Seller offers 5.0 Omni"
+        def offerTxid = createDexSellOffer(actorSeller, OMNI, 5.0.divisible, 2.5.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+
+        when: "Buyer 1 wants to accept 2.0 Omni"
+        def acceptTxid1 = acceptDexOffer(actorBuyer1, OMNI, 2.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "2.0 Omni are reserved for Buyer 1"
+        omniGetTransaction(acceptTxid1).valid
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 2.0.divisible.numberValue()
+
+
+        when: "Buyer 2 wants to accept 7.0 Omni"
+        def acceptTxid2 = acceptDexOffer(actorBuyer2, OMNI, 7.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 7.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "Only 3.0 Omni are reserved for Buyer 2"
+        omniGetTransaction(acceptTxid2).valid
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 3.0.divisible.numberValue()
+    }
+
+    def "Seller offers 5, B1 wants 5, B2 wants 7, but B2 gets nothing"() {
+        given:
+        def actorSeller = createFundedAddress(0.1.btc, 7.0.divisible)
+        def actorBuyer1 = createFundedAddress(0.1.btc, 0.divisible)
+        def actorBuyer2 = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "Seller offers 5.0 Omni"
+        def offerTxid = createDexSellOffer(actorSeller, OMNI, 5.0.divisible, 2.5.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+
+        when: "Buyer 1 wants to accept 5.0 Omni"
+        def acceptTxid1 = acceptDexOffer(actorBuyer1, OMNI, 5.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 5.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "5.0 Omni are reserved for Buyer 1"
+        omniGetTransaction(acceptTxid1).valid
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 5.0.divisible.numberValue()
+
+
+        when: "Buyer 2 wants to accept 7.0 Omni"
+        def acceptTxid2 = acceptDexOffer(actorBuyer2, OMNI, 7.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 7.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "Nothing is left for Buyer 2"
+        !omniGetTransaction(acceptTxid2).valid
+    }
+
+    def "Seller offers 5, B1 wants 7, B2 wants 1, but B2 gets nothing"() {
+        given:
+        def actorSeller = createFundedAddress(0.1.btc, 7.0.divisible)
+        def actorBuyer1 = createFundedAddress(0.1.btc, 0.divisible)
+        def actorBuyer2 = createFundedAddress(0.1.btc, 0.divisible)
+
+        when: "Seller offers 5.0 Omni"
+        def offerTxid = createDexSellOffer(actorSeller, OMNI, 5.0.divisible, 2.5.btc, stdBlockSpan, stdCommitFee, actionNew)
+        generateBlock()
+
+        then:
+        omniGetTransaction(offerTxid).valid
+
+
+        when: "Buyer 1 wants to accept 7.0 Omni"
+        def acceptTxid1 = acceptDexOffer(actorBuyer1, OMNI, 7.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 7.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "5.0 Omni are reserved for Buyer 1"
+        omniGetTransaction(acceptTxid1).valid
+        omniGetTransaction(acceptTxid1).amount as BigDecimal == 5.0.divisible.numberValue()
+
+
+        when: "Buyer 2 wants to accept 1.0 Omni"
+        def acceptTxid2 = acceptDexOffer(actorBuyer2, OMNI, 1.0.divisible, actorSeller)
+
+        then:
+        omniGetTransaction(acceptTxid2).amount as BigDecimal == 1.0.divisible.numberValue()
+
+        when:
+        generateBlock()
+
+        then: "Nothing is left for Buyer 2"
+        !omniGetTransaction(acceptTxid2).valid
+    }
+
     // TODO: actual payment (requires BTC transaction with marker)
 
     // Should we add this directly to Omni*Value classes?
